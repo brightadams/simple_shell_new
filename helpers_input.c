@@ -45,52 +45,52 @@ char *get_args(char *line, int *exe_ret)
  */
 int call_args(char **args, char **front, int *exe_ret)
 {
-	int r, ind;
+	int ret, index;
 
 	if (!args[0])
 		return (*exe_ret);
-	for (ind = 0; args[ind]; ind++)
+	for (index = 0; args[index]; index++)
 	{
-		if (_strncmp(args[ind], "||", 2) == 0)
+		if (_strncmp(args[index], "||", 2) == 0)
 		{
-			free(args[ind]);
-			args[ind] = NULL;
+			free(args[index]);
+			args[index] = NULL;
 			args = replace_aliases(args);
-			r = run_args(args, front, exe_ret);
+			ret = run_args(args, front, exe_ret);
 			if (*exe_ret != 0)
 			{
-				args = &args[++ind];
-				ind = 0;
+				args = &args[++index];
+				index = 0;
 			}
 			else
 			{
-				for (ind++; args[ind]; ind++)
-					free(args[ind]);
-				return (r);
+				for (index++; args[index]; index++)
+					free(args[index]);
+				return (ret);
 			}
 		}
-		else if (_strncmp(args[ind], "&&", 2) == 0)
+		else if (_strncmp(args[index], "&&", 2) == 0)
 		{
-			free(args[ind]);
-			args[ind] = NULL;
+			free(args[index]);
+			args[index] = NULL;
 			args = replace_aliases(args);
-			r = run_args(args, front, exe_ret);
+			ret = run_args(args, front, exe_ret);
 			if (*exe_ret == 0)
 			{
-				args = &args[++ind];
-				ind = 0;
+				args = &args[++index];
+				index = 0;
 			}
 			else
 			{
-				for (ind++; args[ind]; ind++)
-					free(args[ind]);
-				return (r);
+				for (index++; args[index]; index++)
+					free(args[index]);
+				return (ret);
 			}
 		}
 	}
 	args = replace_aliases(args);
-	r = run_args(args, front, exe_ret);
-	return (r);
+	ret = run_args(args, front, exe_ret);
+	return (ret);
 }
 
 /**
@@ -103,29 +103,29 @@ int call_args(char **args, char **front, int *exe_ret)
  */
 int run_args(char **args, char **front, int *exe_ret)
 {
-	int r, p;
+	int ret, m;
 	int (*builtin)(char **args, char **front);
 
 	builtin = get_builtin(args[0]);
 
 	if (builtin)
 	{
-		r = builtin(args + 1, front);
-		if (r != EXIT)
-			*exe_ret = r;
+		ret = builtin(args + 1, front);
+		if (ret != EXIT)
+			*exe_ret = ret;
 	}
 	else
 	{
 		*exe_ret = execute(args, front);
-		r = *exe_ret;
+		ret = *exe_ret;
 	}
 
 	hist++;
 
-	for (p = 0; args[p]; p++)
-		free(args[p]);
+	for (m = 0; args[m]; m++)
+		free(args[m]);
 
-	return (r);
+	return (ret);
 }
 
 /**
@@ -140,7 +140,7 @@ int run_args(char **args, char **front, int *exe_ret)
  */
 int handle_args(int *exe_ret)
 {
-	int r = 0, ind;
+	int ret = 0, index;
 	char **args, *line = NULL, **front;
 
 	line = get_args(line, exe_ret);
@@ -150,7 +150,7 @@ int handle_args(int *exe_ret)
 	args = _strtok(line, " ");
 	free(line);
 	if (!args)
-		return (r);
+		return (ret);
 	if (check_args(args) != 0)
 	{
 		*exe_ret = 2;
@@ -159,22 +159,22 @@ int handle_args(int *exe_ret)
 	}
 	front = args;
 
-	for (ind = 0; args[ind]; ind++)
+	for (index = 0; args[index]; index++)
 	{
-		if (_strncmp(args[ind], ";", 1) == 0)
+		if (_strncmp(args[index], ";", 1) == 0)
 		{
-			free(args[ind]);
-			args[ind] = NULL;
-			r = call_args(args, front, exe_ret);
-			args = &args[++ind];
-			ind = 0;
+			free(args[index]);
+			args[index] = NULL;
+			ret = call_args(args, front, exe_ret);
+			args = &args[++index];
+			index = 0;
 		}
 	}
 	if (args)
-		r = call_args(args, front, exe_ret);
+		ret = call_args(args, front, exe_ret);
 
 	free(front);
-	return (r);
+	return (ret);
 }
 
 /**
@@ -187,21 +187,20 @@ int handle_args(int *exe_ret)
  */
 int check_args(char **args)
 {
-	size_t p;
-	char *current, *n;
+	size_t m;
+	char *cur, *nex;
 
-	for (p = 0; args[p]; p++)
+	for (m = 0; args[m]; m++)
 	{
-		current = args[p];
-		if (current[0] == ';' || current[0] == '&' || current[0] == '|')
+		cur = args[m];
+		if (cur[0] == ';' || cur[0] == '&' || cur[0] == '|')
 		{
-			if (p == 0 || current[1] == ';')
-				return (create_error(&args[p], 2));
-			n = args[p + 1];
-			if (n && (n[0] == ';' || n[0] == '&' || n[0] == '|'))
-				return (create_error(&args[p + 1], 2));
+			if (m == 0 || cur[1] == ';')
+				return (create_error(&args[m], 2));
+			nex = args[m + 1];
+			if (nex && (nex[0] == ';' || nex[0] == '&' || nex[0] == '|'))
+				return (create_error(&args[m + 1], 2));
 		}
 	}
 	return (0);
 }
-

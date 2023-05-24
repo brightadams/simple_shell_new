@@ -10,85 +10,85 @@
  */
 void handle_line(char **line, ssize_t read)
 {
-	char *o_line, *n_line;
-	char prev, curr, next;
-	size_t p, j;
+	char *old_line, *new_line;
+	char previous, current, next;
+	size_t m, j;
 	ssize_t new_len;
 
 	new_len = get_new_len(*line);
 	if (new_len == read - 1)
 		return;
-	n_line = malloc(new_len + 1);
-	if (!n_line)
+	new_line = malloc(new_len + 1);
+	if (!new_line)
 		return;
 	j = 0;
-	o_line = *line;
-	for (p = 0; o_line[p]; p++)
+	old_line = *line;
+	for (m = 0; old_line[m]; m++)
 	{
-		curr = o_line[p];
-		next = o_line[p + 1];
-		if (p != 0)
+		current = old_line[m];
+		next = old_line[m + 1];
+		if (m != 0)
 		{
-			prev = o_line[p - 1];
-			if (curr == ';')
+			previous = old_line[m - 1];
+			if (current == ';')
 			{
-				if (next == ';' && prev != ' ' && prev != ';')
+				if (next == ';' && previous != ' ' && previous != ';')
 				{
-					n_line[j++] = ' ';
-					n_line[j++] = ';';
+					new_line[j++] = ' ';
+					new_line[j++] = ';';
 					continue;
 				}
-				else if (prev == ';' && next != ' ')
+				else if (previous == ';' && next != ' ')
 				{
-					n_line[j++] = ';';
-					n_line[j++] = ' ';
+					new_line[j++] = ';';
+					new_line[j++] = ' ';
 					continue;
 				}
-				if (prev != ' ')
-					n_line[j++] = ' ';
-				n_line[j++] = ';';
+				if (previous != ' ')
+					new_line[j++] = ' ';
+				new_line[j++] = ';';
 				if (next != ' ')
-					n_line[j++] = ' ';
+					new_line[j++] = ' ';
 				continue;
 			}
-			else if (curr == '&')
+			else if (current == '&')
 			{
-				if (next == '&' && prev != ' ')
-					n_line[j++] = ' ';
-				else if (prev == '&' && next != ' ')
+				if (next == '&' && previous != ' ')
+					new_line[j++] = ' ';
+				else if (previous == '&' && next != ' ')
 				{
-					n_line[j++] = '&';
-					n_line[j++] = ' ';
+					new_line[j++] = '&';
+					new_line[j++] = ' ';
 					continue;
 				}
 			}
-			else if (curr == '|')
+			else if (current == '|')
 			{
-				if (next == '|' && prev != ' ')
-					n_line[j++]  = ' ';
-				else if (prev == '|' && next != ' ')
+				if (next == '|' && previous != ' ')
+					new_line[j++]  = ' ';
+				else if (previous == '|' && next != ' ')
 				{
-					n_line[j++] = '|';
-					n_line[j++] = ' ';
+					new_line[j++] = '|';
+					new_line[j++] = ' ';
 					continue;
 				}
 			}
 		}
-		else if (curr == ';')
+		else if (current == ';')
 		{
-			if (p != 0 && o_line[p - 1] != ' ')
-				n_line[j++] = ' ';
-			n_line[j++] = ';';
+			if (m != 0 && old_line[m - 1] != ' ')
+				new_line[j++] = ' ';
+			new_line[j++] = ';';
 			if (next != ' ' && next != ';')
-				n_line[j++] = ' ';
+				new_line[j++] = ' ';
 			continue;
 		}
-		n_line[j++] = o_line[p];
+		new_line[j++] = old_line[m];
 	}
-	n_line[j] = '\0';
+	new_line[j] = '\0';
 
 	free(*line);
-	*line = n_line;
+	*line = new_line;
 }
 
 /**
@@ -103,47 +103,47 @@ void handle_line(char **line, ssize_t read)
 
 ssize_t get_new_len(char *line)
 {
-	size_t p;
+	size_t m;
 	ssize_t new_len = 0;
-	char curr, next;
+	char current, next;
 
-	for (p = 0; line[p]; p++)
+	for (m = 0; line[m]; m++)
 	{
-		curr = line[p];
-		next = line[p + 1];
-		if (curr == '#')
+		current = line[m];
+		next = line[m + 1];
+		if (current == '#')
 		{
-			if (p == 0 || line[p - 1] == ' ')
+			if (m == 0 || line[m - 1] == ' ')
 			{
-				line[p] = '\0';
+				line[m] = '\0';
 				break;
 			}
 		}
-		else if (p != 0)
+		else if (m != 0)
 		{
-			if (curr == ';')
+			if (current == ';')
 			{
-				if (next == ';' && line[p - 1] != ' ' && line[p - 1] != ';')
+				if (next == ';' && line[m - 1] != ' ' && line[m - 1] != ';')
 				{
 					new_len += 2;
 					continue;
 				}
-				else if (line[p - 1] == ';' && next != ' ')
+				else if (line[m - 1] == ';' && next != ' ')
 				{
 					new_len += 2;
 					continue;
 				}
-				if (line[p - 1] != ' ')
+				if (line[m - 1] != ' ')
 					new_len++;
 				if (next != ' ')
 					new_len++;
 			}
 			else
-				logical_ops(&line[p], &new_len);
+				logical_ops(&line[m], &new_len);
 		}
-		else if (curr == ';')
+		else if (current == ';')
 		{
-			if (p != 0 && line[p - 1] != ' ')
+			if (m != 0 && line[m - 1] != ' ')
 				new_len++;
 			if (next != ' ' && next != ';')
 				new_len++;
@@ -152,7 +152,6 @@ ssize_t get_new_len(char *line)
 	}
 	return (new_len);
 }
-
 /**
  * logical_ops - Checks a line for logical operators "||" or "&&".
  * @line: A pointer to the character to check in the line.
@@ -160,25 +159,24 @@ ssize_t get_new_len(char *line)
  */
 void logical_ops(char *line, ssize_t *new_len)
 {
-	char prev, curr, next;
+	char previous, current, next;
 
-	prev = *(line - 1);
-	curr = *line;
+	previous = *(line - 1);
+	current = *line;
 	next = *(line + 1);
 
-	if (curr == '&')
+	if (current == '&')
 	{
-		if (next == '&' && prev != ' ')
+		if (next == '&' && previous != ' ')
 			(*new_len)++;
-		else if (prev == '&' && next != ' ')
+		else if (previous == '&' && next != ' ')
 			(*new_len)++;
 	}
-	else if (curr == '|')
+	else if (current == '|')
 	{
-		if (next == '|' && prev != ' ')
+		if (next == '|' && previous != ' ')
 			(*new_len)++;
-		else if (prev == '|' && next != ' ')
+		else if (previous == '|' && next != ' ')
 			(*new_len)++;
 	}
 }
-

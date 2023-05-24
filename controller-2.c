@@ -1,83 +1,82 @@
 #include "main.h"
 
 /**
- * num_len - Function that counts the digit
- * length of a number.
- * @number: The number to be measured.
+ * num_len - function that counts the digital
+ * length of a number
+ * @num: The number to be measured
  *
- * Return: The digit length.
+ * Return: the digital lenghth
  */
-int num_len(int number)
+int num_len(int num)
 {
-	unsigned int n;
-	int length = 1;
+	unsigned int num1;
+	int len = 1;
 
-	if (number < 0)
+	if (num < 0)
 	{
-		length++;
-		n = number * -1;
+		len++;
+		num1 = num * -1;
 	}
 	else
 	{
-		n = number;
+		num1 = num;
 	}
-
-	while (n > 9)
+	while (num1 > 9)
 	{
-		length++;
-		n /= 10;
+		len++;
+		num1 /= 10;
 	}
 
-	return (length);
+	return (len);
 }
 
 /**
- * _itoa - Function that converts an
- * integer to a string.
- * @number: The integer to be converted.
+ * _itoa - function that converts an
+ * integer to a string
+ * @num: the integer to be converted
  *
- * Return: The converted string.
+ * Return: converted string
  */
-char *_itoa(int number)
+char *_itoa(int num)
 {
-	char *buff;
-	int length = num_len(number);
-	unsigned int n;
+	char *buffer;
+	int len = num_len(num);
+	unsigned int num1;
 
-	buff = malloc(sizeof(char) * (length + 1));
-	if (!buff)
+	buffer = malloc(sizeof(char) * (len + 1));
+	if (!buffer)
 		return (NULL);
 
-	buff[length] = '\0';
+	buffer[len] = '\0';
 
-	if (number < 0)
+	if (num < 0)
 	{
-		n = number * -1;
-		buff[0] = '-';
+		num1 = num * -1;
+		buffer[0] = '-';
 	}
 	else
 	{
-		n = number;
+		num1 = num;
 	}
 
-	length--;
+	len--;
 	do {
-		buff[length] = (n % 10) + '0';
-		n /= 10;
-		length--;
-	} while (n > 0);
+		buffer[len] = (num1 % 10) + '0';
+		num1 /= 10;
+		len--;
+	} while (num1 > 0);
 
-	return (buff);
+	return (buffer);
 }
 
 
 /**
- * create_error - Function that writes a custom
- * error message.
- * @args: Array of arguments.
- * @err: Value of the error.
+ * create_error - function that Writes a custom
+ * error message
+ * @args: array of arguments
+ * @err: value of the error
  *
- * Return: The error value.
+ * Return: the error value
  */
 int create_error(char **args, int err)
 {
@@ -111,5 +110,5 @@ int create_error(char **args, int err)
 	if (error)
 		free(error);
 	return (err);
-}
 
+}

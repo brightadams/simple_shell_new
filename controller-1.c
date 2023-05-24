@@ -1,72 +1,71 @@
 #include "main.h"
 
 /**
- * _copyenv - A function that creates a copy of the environment.
+ * _copyenv - a function that creates a copy of the environment
  *
- * Return: If an error occurs, return NULL.
- *         Otherwise, return a double pointer to the new copy.
+ * Return: If an error occur return NULL or
+ * a double pointer to the new copy if otherwise
  */
 char **_copyenv(void)
 {
-	char **n_env;
+	char **new_environ;
 	size_t size;
-	int ind;
+	int index;
 
 	for (size = 0; environ[size]; size++)
 		;
 
-	n_env = malloc(sizeof(char *) * (size + 1));
-	if (!n_env)
+	new_environ = malloc(sizeof(char *) * (size + 1));
+	if (!new_environ)
 		return (NULL);
 
-	for (ind = 0; environ[ind]; ind++)
+	for (index = 0; environ[index]; index++)
 	{
-		n_env[ind] = malloc(_strlen(environ[ind]) + 1);
+		new_environ[index] = malloc(_strlen(environ[index]) + 1);
 
-		if (!n_env[ind])
+		if (!new_environ[index])
 		{
-			for (ind--; ind >= 0; ind--)
-				free(n_env[ind]);
-			free(n_env);
+			for (index--; index >= 0; index--)
+				free(new_environ[index]);
+			free(new_environ);
 			return (NULL);
 		}
-		_strcpy(n_env[ind], environ[ind]);
+		_strcpy(new_environ[index], environ[index]);
 	}
-	n_env[ind] = NULL;
+	new_environ[index] = NULL;
 
-	return (n_env);
+	return (new_environ);
 }
 
 /**
- * free_env - A function that frees the copy of the environment.
+ * free_env - function that frees the copy of the environment
  */
 void free_env(void)
 {
-	int ind;
+	int index;
 
-	for (ind = 0; environ[ind]; ind++)
-		free(environ[ind]);
+	for (index = 0; environ[index]; index++)
+		free(environ[index]);
 	free(environ);
 }
 
 /**
- * _getenv - A function that gets an environmental variable from the PATH.
- * @var: The environmental variable name.
+ * _getenv - function that gets an environmental variable from the PATH
+ * @var:the environmental variable name
  *
- * Return: NULL if the environmental variable does not exist,
- *         or a pointer to the environmental variable otherwise.
+ * Return: NULL If the environmental variable does not exist, or
+ * a pointer to the environmental variable if otherwise
  */
 char **_getenv(const char *var)
 {
-	int ind, len;
+	int index, len;
 
 	len = _strlen(var);
-	for (ind = 0; environ[ind]; ind++)
+	for (index = 0; environ[index]; index++)
 	{
-		if (_strncmp(var, environ[ind], len) == 0)
-			return (&environ[ind]);
+		if (_strncmp(var, environ[index], len) == 0)
+			return (&environ[index]);
 	}
 
 	return (NULL);
 }
-

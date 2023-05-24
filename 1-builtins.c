@@ -1,150 +1,188 @@
 #include "main.h"
 
 /**
- * shellby_alias - Builtin command that either prints all aliases, specific
- * aliases, or sets an alias.
- * @args: This is an array of arguments.
- * @fr: A double pointer that begins args.
+ * get_builtin -This  Matches a command with a corresponding
+ * shellby builtin function
+ * @command: The command to match
+ *
+ * Return: A function pointer to the corresponding builtin.
+ */
+int (*get_builtin(char *command))(char **args, char **front)
+{
+	builtin_t funcs[] = {
+		{ "exit", shellby_exit },
+		{ "env", shellby_env },
+		{ "setenv", shellby_setenv },
+		{ "unsetenv", shellby_unsetenv },
+		{ "cd", shellby_cd },
+		{ "alias", shellby_alias },
+		{ "help", shellby_help },
+		{ NULL, NULL }
+	};
+	int m;
+
+	for (m = 0; funcs[m].name; m++)
+	{
+		if (_strcmp(funcs[m].name, command) == 0)
+			break;
+	}
+	return (funcs[m].f);
+}
+
+/**
+ * shellby_exit - Causes normal process termination
+ * for the shellby shell.
+ * @args: An array of arguments containing the exit value.
+ * @front: A double pointer to the beginning of args.
+ *
+ * Return: If there are no arguments - -3.
+ *         If the given exit value is invalid - 2.
+ *         O/w - exits with the given status value.
+ *
+ * Description: Upon returning -3, the program exits back in the main function.
+ */
+int shellby_exit(char **args, char **front)
+{
+	int m, len_of_int = 10;
+	unsigned int num = 0, max = 1 << (sizeof(int) * 8 - 1);
+
+	if (args[0])
+	{
+		if (args[0][0] == '+')
+		{
+			m = 1;
+			len_of_int++;
+		}
+		for (; args[0][m]; m++)
+		{
+			if (m <= len_of_int && args[0][m] >= '0' && args[0][m] <= '9')
+				num = (num * 10) + (args[0][m] - '0');
+			else
+				return (create_error(--args, 2));
+		}
+	}
+	else
+	{
+		return (-3);
+	}
+	if (num > max - 1)
+		return (create_error(--args, 2));
+	args -= 1;
+	free_args(args, front);
+	free_env();
+	free_alias_list(aliases);
+	exit(num);
+}
+
+/**
+ * shellby_cd - Changes the current directory of the shellby process.
+ * @args:This takes an array of arguments.
+ * @front: A double pointer to the beginning of args.
+ *
+ * Return: If the given string is not a directory - 2.
+ *         If an error occurs - -1.
+ *         Otherwise - 0.
+ */
+int shellby_cd(char **args, char __attribute__((__unused__)) **front)
+{
+	char **dir_info, *new_line = "\n";
+	char *oldpwd = NULL, *pwd = NULL;
+	struct stat dir;
+
+	oldpwd = getcwd(oldpwd, 0);
+	if (!oldpwd)
+		return (-1);
+
+	if (args[0])
+	{
+		if (*(args[0]) == '-' || _strcmp(args[0], "--") == 0)
+		{
+			if ((args[0][1] == '-' && args[0][2] == '\0') ||
+					args[0][1] == '\0')
+			{
+				if (_getenv("OLDPWD") != NULL)
+					(chdir(*_getenv("OLDPWD") + 7));
+			}
+			else
+			{
+				free(oldpwd);
+				return (create_error(args, 2));
+			}
+		}
+		else
+		{
+			if (stat(args[0], &dir) == 0 && S_ISDIR(dir.st_mode)
+					&& ((dir.st_mode & S_IXUSR) != 0))
+				chdir(args[0]);
+			else
+			{
+				free(oldpwd);
+				return (create_error(args, 2));
+			}
+		}
+	}
+	else
+	{
+		if (_getenv("HOME") != NULL)
+			chdir(*(_getenv("HOME")) + 5);
+	}
+
+	pwd = getcwd(pwd, 0);
+	if (!pwd)
+		return (-1);
+
+	dir_info = malloc(sizeof(char *) * 2);
+	if (!dir_info)
+		return (-1);
+
+	dir_info[0] = "OLDPWD";
+	dir_info[1] = oldpwd;
+	if (shellby_setenv(dir_info, dir_info) == -1)
+		return (-1);
+
+	dir_info[0] = "PWD";
+	dir_info[1] = pwd;
+	if (shellby_setenv(dir_info, dir_info) == -1)
+		return (-1);
+	if (args[0] && args[0][0] == '-' && args[0][1] != '-')
+	{
+		write(STDOUT_FILENO, pwd, _strlen(pwd));
+		write(STDOUT_FILENO, new_line, 1);
+	}
+	free(oldpwd);
+	free(pwd);
+	free(dir_info);
+	return (0);
+}
+
+/**
+ * shellby_help - Displays information about shellby builtin commands.
+ * @args: An array of arguments.
+ * @front: A pointer to the beginning of args.
  *
  * Return: If an error occurs - -1.
  *         Otherwise - 0.
  */
-int shellby_alias(char **args, char __attribute__((__unused__)) **fr)
+int shellby_help(char **args, char __attribute__((__unused__)) **front)
 {
-	alias_t *tmp = aliases;
-	int m, ret = 0;
-	char *val;
-
 	if (!args[0])
-	{
-		while (tmp)
-		{
-			print_alias(tmp);
-			tmp = tmp->next;
-		}
-		return ret;
-	}
-	for (m = 0; args[m]; m++)
-	{
-		tmp = aliases;
-		val = _strchr(args[m], '=');
-		if (!val)
-		{
-			while (tmp)
-			{
-				if (_strcmp(args[m], tmp->name) == 0)
-				{
-					print_alias(tmp);
-					break;
-				}
-				tmp = tmp->next;
-			}
-			if (!tmp)
-				ret = create_error(args + m, 1);
-		}
-		else
-			set_alias(args[m], val);
-	}
-	return ret;
+		help_all();
+	else if (_strcmp(args[0], "alias") == 0)
+		help_alias();
+	else if (_strcmp(args[0], "cd") == 0)
+		help_cd();
+	else if (_strcmp(args[0], "exit") == 0)
+		help_exit();
+	else if (_strcmp(args[0], "env") == 0)
+		help_env();
+	else if (_strcmp(args[0], "setenv") == 0)
+		help_setenv();
+	else if (_strcmp(args[0], "unsetenv") == 0)
+		help_unsetenv();
+	else if (_strcmp(args[0], "help") == 0)
+		help_help();
+	else
+		write(STDERR_FILENO, name, _strlen(name));
+
+	return (0);
 }
-
-/**
- * set_alias - Will either set an existing alias 'name' with a new value,
- * 'value' or creates a new alias with 'name' and 'value'
- * @var_name: Should be the Name of the alias
- * @value: The Value of the alias. First character is an '='
- */
-void set_alias(char *var_name, char *value)
-{
-	alias_t *tmp = aliases;
-	int le, j, k;
-	char *new_val;
-
-	*value = '\0';
-	value++;
-	le = _strlen(value) - _strspn(value, "'\"");
-	new_val = malloc(sizeof(char) * (le + 1));
-	if (!new_val)
-		return;
-	for (j = 0, k = 0; value[j]; j++)
-	{
-		if (value[j] != '\'' && value[j] != '"')
-			new_val[k++] = value[j];
-	}
-	new_val[k] = '\0';
-	while (tmp)
-	{
-		if (_strcmp(var_name, tmp->name) == 0)
-		{
-			free(tmp->value);
-			tmp->value = new_val;
-			break;
-		}
-		tmp = tmp->next;
-	}
-	if (!tmp)
-		add_alias_end(&aliases, var_name, new_val);
-}
-
-/**
- * print_alias - This Prints the alias in the format name='value'.
- * @alia: Pointer to an alias.
- */
-void print_alias(alias_t *alia)
-{
-	char *alias_str;
-	int le = _strlen(alia->name) + _strlen(alia->value) + 4;
-
-	alias_str = malloc(sizeof(char) * (le + 1));
-	if (!alias_str)
-		return;
-	_strcpy(alias_str, alia->name);
-	_strcat(alias_str, "='");
-	_strcat(alias_str, alia->value);
-	_strcat(alias_str, "'\n");
-
-	write(STDOUT_FILENO, alias_str, le);
-	free(alias_str);
-}
-
-/**
- * replace_aliases - This Goes through all the arguments and replace any matching alias
- * with their value.
- * @args: All 2D pointer to the arguments.
- *
- * Return: All 2D pointer to the arguments.
- */
-char **replace_aliases(char **args)
-{
-	alias_t *tmp;
-	int m;
-	char *new_val;
-
-	if (_strcmp(args[0], "alias") == 0)
-		return args;
-	for (m = 0; args[m]; m++)
-	{
-		tmp = aliases;
-		while (tmp)
-		{
-			if (_strcmp(args[m], tmp->name) == 0)
-			{
-				new_val = malloc(sizeof(char) * (_strlen(tmp->value) + 1));
-				if (!new_val)
-				{
-					free_args(args, args);
-					return NULL;
-				}
-				_strcpy(new_val, tmp->value);
-				free(args[m]);
-				args[m] = new_val;
-				m--;
-				break;
-			}
-			tmp = tmp->next;
-		}
-	}
-
-	return args;
-}
-

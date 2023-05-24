@@ -1,82 +1,82 @@
 #include "main.h"
 
 /**
- * str_length - Returns the length of a string
- * @str: Pointer to the string
+ * _strlen - function that returns the length of a string
+ * @s: pointer to the characters string
  *
- * Return: Length of the string
+ * Return: length of the character string
  */
-int str_length(const char *str)
+int _strlen(const char *s)
 {
-	int len = 0;
+	int length = 0;
 
-	if (!str)
-		return (len);
-
-	for (len = 0; str[len]; len++)
+	if (!s)
+		return (length);
+	for (length = 0; s[length]; length++)
 		;
-
-	return (len);
+	return (length);
 }
 
 /**
- * str_copy - Copies the contents of the source string to the destination buffer
- * @dest: Pointer to the destination buffer
- * @src: Pointer to the source string
+ * _strcpy - function that copies the contents of the string
+ * pointed to by src to the buffer pointed to by dest, including
+ * the terminating null byte of the string
+ * @dest: pointer to the destination of string to be copied
+ * @src: pointer to the src of the source string
  *
- * Return: Pointer to the destination buffer
+ * Return: pointer to dest
  */
-char *str_copy(char *dest, const char *src)
+char *_strcpy(char *dest, const char *src)
 {
-	size_t i;
+	size_t m;
 
-	for (i = 0; src[i] != '\0'; i++)
-		dest[i] = src[i];
-
-	dest[i] = '\0';
+	for (m = 0; src[m] != '\0'; m++)
+		dest[m] = src[m];
+	dest[m] = '\0';
 	return (dest);
 }
 
 /**
- * str_concat - Concatenates two strings
- * @dest: Pointer to the destination string
- * @src: Pointer to the source string
+ * _strcat - function that Concantenates two strings
+ * @dest: a pointer to destination string
+ * @src: a pointer to source string
  *
- * Return: Pointer to the destination string
+ * Return: pointer to destination string
  */
-char *str_concat(char *dest, const char *src)
+char *_strcat(char *dest, const char *src)
 {
-	char *dest_ptr = dest;
-	const char *src_ptr = src;
+	char *destTemp;
+	const char *srcTemp;
 
-	while (*dest_ptr != '\0')
-		dest_ptr++;
+	destTemp = dest;
+	srcTemp =  src;
 
-	while (*src_ptr != '\0')
-		*dest_ptr++ = *src_ptr++;
+	while (*destTemp != '\0')
+		destTemp++;
 
-	*dest_ptr = '\0';
+	while (*srcTemp != '\0')
+		*destTemp++ = *srcTemp++;
+	*destTemp = '\0';
 	return (dest);
 }
 
 /**
- * str_nconcat - Concatenates two strings up to n characters from source
- * @dest: Pointer to the destination string
- * @src: Pointer to the source string
- * @n: Number of characters to copy from source
+ * _strncat - function that concantenates two strings where n
+ * number of bytes are copied from source
+ * @dest: a pointer to the destination string
+ * @src: a pointer to the source string
+ * @n: number of bytes to copy from src
  *
- * Return: Pointer to the destination string
+ * Return: pointer to destination string
  */
-char *str_nconcat(char *dest, const char *src, size_t n)
+char *_strncat(char *dest, const char *src, size_t n)
 {
-	size_t dest_len = str_length(dest);
-	size_t i;
+	size_t dest_len = _strlen(dest);
+	size_t m;
 
-	for (i = 0; i < n && src[i] != '\0'; i++)
-		dest[dest_len + i] = src[i];
-
-	dest[dest_len + i] = '\0';
+	for (m = 0; m < n && src[m] != '\0'; m++)
+		dest[dest_len + m] = src[m];
+	dest[dest_len + m] = '\0';
 
 	return (dest);
 }
-
